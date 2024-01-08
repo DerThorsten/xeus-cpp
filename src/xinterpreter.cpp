@@ -270,6 +270,15 @@ namespace xcpp
         , m_cout_buffer(std::bind(&interpreter::publish_stdout, this, _1))
         , m_cerr_buffer(std::bind(&interpreter::publish_stderr, this, _1))
     {
+        // [IncrementalJIT] define() failed1: Operation failed. No execution engine
+        // We cannot call redirect_output bevore executing some code
+        // otherwise we will get an error from clangs interpreter code "No execution engine"
+        // since this is only created when executing code. 
+        // (this bug is obsereved for the wasm build)
+        std::string error_message;
+        llvm::raw_string_ostream error_stream(error_message);
+        process_code(*m_interpreter, "", error_stream );
+
         redirect_output();
         init_includes();
         init_preamble();
